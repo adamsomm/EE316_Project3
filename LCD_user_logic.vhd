@@ -19,14 +19,14 @@ architecture user_logic of LCD_user_logic is
   --signal ascii0, ascii1, ascii2, ascii3 : std_logic_vector(7 downto 0);
   type data2lcd is array (0 to 3, 0 to 8) of std_logic_vector(8 downto 0);
   constant lcd_chars : data2lcd := (
-  -- LDR Mode, 76(L) 68(D) 82(R) - C0(next line) 67(C) 76(L) 79(O) 67(C) 75(K)
-  ('1' & X"76", '1' & X"68", '1' & X"82", '0' & X"C0", '1' & X"67", '1' & X"76", '1' & X"79", '1' & X"67", '1' & X"75"),
-  -- TEMP Mode, 84(T) 69(E) 77(M) 80(P) - C0(next line) 67(C) 76(L) 79(O) 75(K)
-  ('1' & X"84", '1' & X"69", '1' & X"77", '1' & X"80", '0' & X"C0", '1' & X"67", '1' & X"76", '1' & X"79", '1' & X"75"),
-  -- POT Mode, 76(L) 68(D) 82(R) - C0(next line) 67(C) 76(L) 79(O) 67(C) 75(K)
-  ('1' & X"76", '1' & X"68", '1' & X"82", '0' & X"C0", '1' & X"67", '1' & X"76", '1' & X"79", '1' & X"67", '1' & X"75"),
+  -- LDR Mode, 4C(L) 44(D) 52(R) - C0(next line) 43(C) 4C(L) 4F(O) 43(C) 4B(K)
+  ('1' & X"4C", '1' & X"44", '1' & X"52", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
+  -- TEMP Mode, 54(T) 45(E) 4D(M) 50(P) - C0(next line) 43(C) 4C(L) 4F(O) 43(C) 4B(K)
+  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"4B"),
+  -- POT Mode, 50(L) 4F(D) 54(R) - C0(next line) 43(C) 4C(L) 4F(O) 43(C) 4B(K)
+  ('1' & X"50", '1' & X"4F", '1' & X"54", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
   -- blank for analog 01 FOR CLEAR
-  ('0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01", '0' & X"01")
+  ('0' & X"01", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20")
   );
 
   type state_type is (start, ready, data_valid, busy_high, repeat);
@@ -137,7 +137,7 @@ begin
       when "001"  => mode_index  := 1; -- TEMP mode 
       when "010"  => mode_index  := 2; -- POT mode
       when "100"  => mode_index  := 3; -- CLEAR mode
-      when others => mode_index := 0;
+      when others => mode_index := 3;
     end case;
 
     case byteSel is
@@ -199,7 +199,6 @@ begin
         reset_n     <= '0';
         ena         <= '0';
         data_wr     <= (others => '0');
-        RS_wr       <= '0';
       end if;
       -- State machine for LCD control
       case state is
