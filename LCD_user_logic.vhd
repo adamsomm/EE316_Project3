@@ -12,7 +12,7 @@ entity LCD_user_logic is
     reset : in std_logic;
     --Clock     : IN     BOOLEAN;
     mode  : in std_logic_vector(2 downto 0); -- LDR, TEMP, POT, Clear
-    oData : out std_logic_vector(7 downto 0)
+    oData : out std_logic_vector(7 downto 0) := (others => '0')
   );
 end LCD_user_logic;
 architecture user_logic of LCD_user_logic is
@@ -49,7 +49,7 @@ architecture user_logic of LCD_user_logic is
 
   signal prev_mode   : std_logic_vector(2 downto 0) := "000"; -- Previous mode for comparison
   signal dataBuffer  : std_logic_vector(8 downto 0);
-  signal data_nibble : std_logic;
+  signal data_nibble : std_logic := '0';
   signal LCD_RS      : std_logic;
   signal LCD_EN      : std_logic;
   signal LCD_DATA    : std_logic_vector(7 downto 0);
@@ -162,8 +162,11 @@ begin
         RS   <= '0'; -- Cursor at Home position
         -- Display messages
       when 6 to 14 =>
-        dataBuffer <= lcd_chars(mode_index, byteSel - 15);
-        RS         <= dataBuffer(8);
+--        dataBuffer <= lcd_chars(mode_index, byteSel - 6);
+--        RS         <= dataBuffer(8);
+--        data       <= databuffer(7 downto 0);
+        RS   <= lcd_chars(mode_index, byteSel - 6)(8);
+        data <= lcd_chars(mode_index, byteSel - 6)(7 downto 0);
       when others =>
         data <= X"28";
         RS   <= '0'; -- Default command
@@ -182,15 +185,21 @@ begin
       RS_wr       <= '0';
       count       <= X"00000FF";
       byteSel     <= 0;
-      data_nibble <= (others => '0');
+      data_nibble <= '0';
+      repeat_flag <= '0';
     elsif (rising_edge(clk)) then
       -- mode change logic
       if mode /= prev_mode then
+        state       <= start;
         byteSel     <= 0; -- Reset byteSel when mode changes
         prev_mode   <= mode;
         data_nibble <= '0'; -- Reset data_nibble when mode changes
         count       <= X"00000FF"; -- Reset count when mode changes
         repeat_flag <= '0'; -- Reset repeat_flag when mode changes
+        reset_n     <= '0';
+        ena         <= '0';
+        data_wr     <= (others => '0');
+        RS_wr       <= '0';
       end if;
       -- State machine for LCD control
       case state is
@@ -200,20 +209,16 @@ begin
             reset_n <= '0';
             state   <= start;
             ena     <= '0';
-          else
-            reset_n <= '1';
-            state   <= ready;
+          else 
             if data_nibble = '0' then
               data_wr <= X"0" & data(7 downto 4); -- Send high nibble
             else
               data_wr <= X"0" & data(3 downto 0); -- Send low nibble
             end if;
             ena <= '1';
-            if data(8) = '1' then
-              RS_wr <= '1'; -- Data for LCD display
-            else
-              RS_wr <= '0'; -- Command for LCD display
-            end if;
+            RS_wr <= RS;
+            reset_n <= '1';
+            state   <= ready;
           end if;
         when ready =>
           if busy = '0' then
