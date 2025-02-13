@@ -33,7 +33,7 @@ architecture Behavioral of LCDDataSelect is
   signal LCD_RW   : std_logic;
   signal LCD_BL   : std_logic;
   signal LCD_DATA : std_logic_vector(3 downto 0);
-  signal Data_RS  : STS_LOGIC_VECTOR(8 downto 0);
+  signal Data_RS  : STD_LOGIC_VECTOR(8 downto 0);
   signal byteSel  : integer range 0 to 15 := 0;
 begin
 
@@ -43,6 +43,7 @@ begin
   data_out <= LCD_DATA & LCD_BL & LCD_EN & LCD_RW & LCD_RS;
 
   process (byteSel, mode, reset)
+    variable mode_index : integer;
   begin
     if reset = '1' then
       data_out <= (others => '0');
@@ -61,30 +62,30 @@ begin
     case byteSel is
         -- Initialization commands
       when 0 =>
-        data <= X"02";
-        RS   <= '0'; -- 4 bit mode select
+        Data_RS(7 downto 0) <= X"02";
+        Data_RS(8)   <= '0'; -- 4 bit mode select
       when 1 =>
-        data <= X"28";
-        RS   <= '0'; -- initialize 4-bit mode
+        Data_RS(7 downto 0) <= X"28";
+        Data_RS(8)   <= '0'; -- initialize 4-bit mode
       when 2 =>
-        data <= X"0C";
-        RS   <= '0'; -- Display ON, cursor OFF command
+        Data_RS(7 downto 0) <= X"0C";
+        Data_RS(8)   <= '0'; -- Display ON, cursor OFF command
       when 3 =>
-        data <= X"06";
-        RS   <= '0'; -- auto increment cursor
+        Data_RS(7 downto 0) <= X"06";
+        Data_RS(8)   <= '0'; -- auto increment cursor
       when 4 =>
-        data <= X"01";
-        RS   <= '0'; -- Clear Display
+        Data_RS(7 downto 0) <= X"01";
+        Data_RS(8)   <= '0'; -- Clear Display
       when 5 =>
-        data <= X"80";
-        RS   <= '0'; -- Cursor at Home position
+        Data_RS(7 downto 0) <= X"80";
+        Data_RS(8)   <= '0'; -- Cursor at Home position
         -- Display messages
       when 6 to 15 =>
         Data_RS(8)          <= lcd_chars(mode_index, byteSel - 6)(8);
         Data_RS(7 downto 0) <= lcd_chars(mode_index, byteSel - 6)(7 downto 0);
       when others =>
-        data <= X"28";
-        RS   <= '0'; -- Default command
+        Data_RS(7 downto 0) <= X"28";
+        Data_RS(8)   <= '0'; -- Default command
     end case;
 
     -- LCD signal logic ----------------
@@ -95,7 +96,6 @@ begin
     else
       LCD_DATA <= Data_RS(3 downto 0);
     end if;
-  end case;
 end process;
 
 process (nextByte)
@@ -107,7 +107,7 @@ begin
     LCD_EN <= '0';
   end if;
 
-  if (nextBytr = 0) then
+  if (nextByte = 0) then
     byteSel <= byteSel + 1;
   end if;
 end process;

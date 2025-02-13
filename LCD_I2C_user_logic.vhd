@@ -60,11 +60,13 @@ architecture user_logic of LCD_I2C_user_logic is
   signal state   : state_type;
   signal rst     : std_logic := '0';
   signal reset_n : std_logic;
+  signal reset_D : std_logic := '0';
   signal oldBusy : std_logic := '0';
   signal busy    : std_logic;
   -- -----------------------------------------------------------------------------------------------------------------------------------
 begin
   reset_n <= not reset or not rst;
+  reset_D <= not reset_n;
   i2c_rw <= '0';
 
   inst_i2cMaster : i2c_master
@@ -88,7 +90,7 @@ begin
   inst_dataSelect : LCDDataSelect
   port map
   (
-    reset    => not reset_n,
+    reset    => reset_D,
     nextByte => nextByte,
     mode     => MODE,
     data_out => LCD_Data
@@ -131,7 +133,7 @@ begin
           end if;
         when write =>
           i2c_addr    <= slave_addr;
-          i2c_data_wr <= iData;
+          i2c_data_wr <= LCD_Data;
           state       <= write;
         when others =>
           state <= start;
