@@ -39,6 +39,7 @@ architecture user_logic of LCD_I2C_user_logic is
   end component;
   component LCDDataSelect is
     port (
+      clk      : in std_logic;
       reset    : in std_logic;
       nextByte : in integer;
       mode     : in std_logic_vector(2 downto 0);
@@ -49,7 +50,7 @@ architecture user_logic of LCD_I2C_user_logic is
 
   signal LCD_Data : std_logic_vector(7 downto 0) := (others => '0');
 
-  signal cont        : unsigned(27 downto 0)        := X"00000FF";
+  signal cont        : unsigned(27 downto 0)        := X"01FFFFF";
   signal slave_addr  : std_logic_vector(6 downto 0) := "0100111"; -- 0x27 in 7-bit
   signal i2c_addr    : std_logic_vector(6 downto 0);
   signal i2c_rw      : std_logic                    := '0';
@@ -59,14 +60,14 @@ architecture user_logic of LCD_I2C_user_logic is
   type state_type is (start, write);
   signal state   : state_type;
   signal rst     : std_logic := '0';
-  signal reset_n : std_logic;
+  signal reset_M : std_logic;
   signal reset_D : std_logic := '0';
   signal oldBusy : std_logic := '0';
   signal busy    : std_logic;
   -- -----------------------------------------------------------------------------------------------------------------------------------
 begin
-  reset_n <= not reset or not rst;
-  reset_D <= not reset_n;
+  reset_M <= not reset or not rst; -- active low
+  reset_D <= not reset_M; -- active high
   i2c_rw <= '0';
 
   inst_i2cMaster : i2c_master
@@ -76,7 +77,7 @@ begin
   port map
   (
     clk       => clk, --system clock
-    reset_n   => reset_n, --active low reset
+    reset_n   => reset_M, --active low reset
     ena       => i2c_ena, --latch in command
     addr      => i2c_addr, --address of target slave
     rw        => i2c_rw, --'0' is write, '1' is read (I am writing data ABCD)
@@ -90,6 +91,7 @@ begin
   inst_dataSelect : LCDDataSelect
   port map
   (
+    clk      => clk,
     reset    => reset_D,
     nextByte => nextByte,
     mode     => MODE,
@@ -99,18 +101,18 @@ begin
   process (clk)
   begin
     if reset = '1' then
-      rst         <= '0';
-      cont        <= X"00000FF";
+      rst         <= '1';
+      cont        <= X"01FFFFF";
       i2c_addr    <= (others => '0');
       i2c_data_wr <= (others => '0');
       oldBusy     <= '0';
       i2c_ena     <= '0';
       nextByte    <= 0;
       state       <= start;
-    end if;
-    if (rising_edge(Clk)) then
+    
+    elsif (rising_edge(Clk)) then
       oldBusy <= busy;
-      if (oldBusy = '1' and busy = '0') then -- next byte logic
+      if (oldBusy = '1' and busy = '0' and state = write) then -- next byte logic
         if (nextByte < 5) then
           nextByte <= nextByte + 1;
         else
