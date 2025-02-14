@@ -105,6 +105,7 @@ begin
       i2c_data_wr <= (others => '0');
       oldBusy     <= '0';
       i2c_ena     <= '0';
+      nextByte    <= 0;
       state       <= start;
     end if;
     if (rising_edge(Clk)) then
