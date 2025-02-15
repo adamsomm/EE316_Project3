@@ -7,20 +7,20 @@ entity LCDDataSelect is
     clk      : in std_logic;
     reset    : in std_logic;
     nextByte : in integer;
-    mode     : in std_logic_vector(2 downto 0);
+    mode     : in std_logic_vector(2 downto 0) := "100";
     data_out : out std_logic_vector(7 downto 0) := (others => '0')
   );
 end LCDDataSelect;
 
 architecture Behavioral of LCDDataSelect is
 
-  type data2lcd is array (0 to 4, 0 to 9) of std_logic_vector(8 downto 0);
+  type data2lcd is array (0 to 4, 0 to 10) of std_logic_vector(8 downto 0);
   constant lcd_chars : data2lcd := (
-  ('1' & X"4C", '1' & X"44", '1' & X"52", '1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"50", '1' & X"4F", '1' & X"54", '1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"50", '1' & X"57", '1' & X"4D", '1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('0' & X"01", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20")
+  ('1' & X"4C", '1' & X"44", '1' & X"52", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
+  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
+  ('1' & X"50", '1' & X"4F", '1' & X"54", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
+  ('1' & X"50", '1' & X"57", '1' & X"4D", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"),
+  ('0' & X"01", '1' & X"20", '1' & X"20", '1' & X"20",'1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20")
   );
 
   signal LCD_EN      : std_logic := '0';
@@ -34,7 +34,7 @@ architecture Behavioral of LCDDataSelect is
   --  signal firstZero   : std_logic                    := '0';
   signal data     : std_logic_vector(7 downto 0) := (others => '0');
   signal LCD_DATA : std_logic_vector(3 downto 0) := (others => '0');
-  signal byteSel  : integer range 1 to 19        := 1;
+  signal byteSel  : integer range 1 to 20        := 1;
 
 begin
 
@@ -51,10 +51,10 @@ begin
       currentByte <= nextByte;
       if nextByte = 0 then
         if nextByte /= currentByte then
-          if byteSel < 16 then
+          if byteSel < 20 then
             byteSel <= byteSel + 1;
           else
-            byteSel <= 6;
+            byteSel <= 9;
           end if;
         end if;
       end if;
@@ -105,7 +105,7 @@ begin
   end process;
 
   process (mode, byteSel, nibble, nextByte)
-    variable mode_index : integer;
+    variable mode_index : integer := 0;
   begin
 
     -- Mode changing logic 
@@ -120,13 +120,13 @@ begin
 
     case byteSel is
         -- Initialization commands
-      when 1 to 3 =>
+      when 1  =>
         data <= X"30";
         RS   <= '0'; -- 4 bit mode select
-      when 4 =>
+      when 2 =>
         data <= X"20";
         RS   <= '0'; -- initialize 4-bit mode
-      when 5 =>
+      when 3 to 5 =>
         data <= X"28";
         RS   <= '0';     
       when 6 =>
@@ -142,7 +142,7 @@ begin
         data <= X"80";
         RS   <= '0'; -- Cursor at Home position
         -- Display messages
-      when 10 to 19 =>
+      when 10 to 20 =>
         RS   <= lcd_chars(mode_index, byteSel - 10)(8);
         data <= lcd_chars(mode_index, byteSel - 10)(7 downto 0);
       when others =>
