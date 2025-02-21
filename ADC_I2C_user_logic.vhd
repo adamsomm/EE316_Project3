@@ -19,7 +19,7 @@ architecture Behavioral of ADC_I2C_user_logic is
   component i2c_master is
     generic (
       input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
-      bus_clk   : integer := 400_000); --speed the i2c bus (scl) will run at in Hz
+      bus_clk   : integer := 50_000); --speed the i2c bus (scl) will run at in Hz
     -- ADC runs at 400,000, lcd at 100k max 
     port (
       clk       : in std_logic; --system clock
@@ -58,7 +58,7 @@ begin
   inst_i2cMaster : i2c_master
   generic map(
     input_clk => 50_000_000, --input clock speed from user logic in Hz
-    bus_clk   => 400_000) --speed the i2c bus (scl) will run at in Hz
+    bus_clk   => 50_000) --speed the i2c bus (scl) will run at in Hz
   port map
   (
     clk       => clk, --system clock
