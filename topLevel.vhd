@@ -70,19 +70,40 @@ architecture Behavioral of topLevel is
       sda : inout std_logic
     );
   end component;
+  component Reset_Delay is
+    port (
+      iCLK : in std_logic;
+      oRESET : out std_logic
+    );
+  end component;
+  component btn_debounce_toggle is
+    generic (
+      CNTR_MAX : std_logic_vector(15 downto 0) := X"FFFF"
+    );
+    port (
+      BTN_I : in STD_LOGIC;
+      CLK : in STD_LOGIC;
+      BTN_O : out STD_LOGIC;
+      TOGGLE_O : out STD_LOGIC;
+      PULSE_O : out STD_LOGIC
+    );
+  end component;
 
   -- Signal declarations
   signal system_reset : std_logic := '0';
   signal ADC_data     : std_logic_vector(7 downto 0);
   signal MODE         : std_logic_vector(2 downto 0);
   signal Clk_gen_en   : std_logic;
+  signal btn_reset    : std_logic;
+  signal reset_d      : std_logic;
 begin
+  system_reset <= btn_reset or reset_d;
   -- Component instantiation
   Mode_ManagerP3_inst : Mode_ManagerP3
   port map
   (
     clk     => iCLK,
-    reset   => system_reset,
+    reset   => btn_reset,
     btn     => btn,
     MODE    => MODE,
     LED     => LED,
@@ -130,6 +151,46 @@ begin
     scl => LCDscl,
     sda => LCDsda
   );
+
+  btn_debounce_toggle_inst0 : btn_debounce_toggle
+  generic map (
+    CNTR_MAX => CNTR_MAX
+  )
+  port map (
+    BTN_I => btn(0),
+    CLK => iCLK,
+    BTN_O => btn(0),
+    TOGGLE_O => open,
+    PULSE_O => open
+  );
+  btn_debounce_toggle_inst1 : btn_debounce_toggle
+  generic map (
+    CNTR_MAX => CNTR_MAX
+  )
+  port map (
+    BTN_I => btn(1),
+    CLK => iCLK,
+    BTN_O => open,
+    TOGGLE_O => open,
+    PULSE_O => btn(1)
+  );
+  btn_debounce_toggle_inst2 : btn_debounce_toggle
+  generic map (
+    CNTR_MAX => CNTR_MAX
+  )
+  port map (
+    BTN_I => btn(2),
+    CLK => iCLK,
+    BTN_O => open,
+    TOGGLE_O => btn(2),
+    PULSE_O => open
+  );
+  Reset_Delay_inst : Reset_Delay
+  port map (
+    iCLK => iCLK,
+    oRESET => reset_d
+  );
+
 
   -- Process declarations
   process (clk)
