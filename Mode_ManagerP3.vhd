@@ -7,10 +7,10 @@ entity Mode_ManagerP3 is
     Port (
         clk : in STD_LOGIC;
         reset : out STD_LOGIC;
-        btn : in std_logic_vector(2 downto 0);
+        ibtn : in std_logic_vector(2 downto 0);
         MODE : out std_logic_vector(2 downto 0) := "000";
-        LED : out std_logic_vector(3 downto 0) := "0000";
-        Clk_Gen : out std_logic
+        LEDc : out std_logic_vector(3 downto 0) := "0000";
+        Clk_Geno : out std_logic
         -- Add other ports here
     );
 end Mode_ManagerP3;
@@ -20,45 +20,45 @@ architecture Behavioral of Mode_ManagerP3 is
     signal state   : state_type;
     -- Declare internal signals here
 begin
-    process(clk, btn)
+    process(clk, ibtn)
     begin
-        if btn(0) = '1' then
+        if ibtn(0) = '1' then
             state <= Resets;
         elsif rising_edge(clk) then
-            if btn(2) = '1' then
-                Clk_Gen <= '1';
-                LED(1) <= '1';
+            if ibtn(2) = '1' then
+                Clk_Geno <= '1';
+                LEDc(1) <= '1';
             else
-                Clk_Gen <= '0';
-                LED(1) <= '0';
+                Clk_Geno <= '0';
+                LEDc(1) <= '0';
             end if;
             case state is
                 when Resets =>
                     reset <= '1';
-                    LED(0) <= '0';
-                    if btn(0) = '0' then
+                    LEDc(0) <= '0';
+                    if ibtn(0) = '0' then
                         reset <= '0';
-                        LED <= (others => '0');
+                        LEDc <= (others => '0');
                         state <= LDR;
                     end if;
                 when LDR =>
-                    LED(3 downto 2) <= "00";
-                    if btn(1) = '1' then
+                    LEDc(3 downto 2) <= "00";
+                    if ibtn(1) = '1' then
                         state <= TEMP;
                     end if;
                 when TEMP =>
-                    LED(3 downto 2) <= "01";
-                    if btn(1) = '1' then
+                    LEDc(3 downto 2) <= "01";
+                    if ibtn(1) = '1' then
                         state <= PWM;
                     end if;
                 when PWM =>
-                    LED(3 downto 2) <= "10";
-                    if btn(1) = '1' then
+                    LEDc(3 downto 2) <= "10";
+                    if ibtn(1) = '1' then
                         state <= POT;
                     end if;
                 when POT =>
-                    LED(3 downto 2) <= "11";
-                    if btn(1) = '1' then
+                    LEDc(3 downto 2) <= "11";
+                    if ibtn(1) = '1' then
                         state <= LDR;
                     end if;
                 when others =>
