@@ -7,14 +7,14 @@ entity ampPWM is
     clk : in std_logic;
     rst : in std_logic;
     dynamic_bits : in integer := 8;  -- Input for dynamic bit width
-    SRAMdata : in std_logic_vector(15 downto 0);
+    SRAMdata : in std_logic_vector(7 downto 0);
     PWMout : out std_logic
   );
 end ampPWM;
 
 architecture Behavioral of ampPWM is
     signal counter : integer := 0;  -- Counter with max possible size
-    signal SRAMdatatrunk : std_logic_vector(15 downto 0);  -- SRAM data truncated to dynamic_bits width
+    signal SRAMdatatrunk : std_logic_vector(7 downto 0);  -- SRAM data truncated to dynamic_bits width
     signal count_max : integer;
 begin
 
@@ -22,18 +22,18 @@ begin
     process(SRAMdata, dynamic_bits)
     begin
         case dynamic_bits is
-				when 6 => 
-                SRAMdatatrunk <= "0000000000" & SRAMdata(15 downto 10);
-                count_max <= 2**6 - 1;
-            when 7 => 
-                SRAMdatatrunk <= "000000000" & SRAMdata(15 downto 9);
-                count_max <= 2**7 - 1;
+--				when 6 => 
+--                SRAMdatatrunk <= "0000000000" & SRAMdata(15 downto 10);
+--                count_max <= 2**6 - 1;
+--            when 7 => 
+--                SRAMdatatrunk <= "000000000" & SRAMdata(15 downto 9);
+--                count_max <= 2**7 - 1;
             when 8 => 
-                SRAMdatatrunk <= "00000000" & SRAMdata(15 downto 8);
+                SRAMdatatrunk <= SRAMdata;
                 count_max <= 2**8 - 1;
             when others => 
-                SRAMdatatrunk <= SRAMdata(15 downto 0); -- default case for 16 bits
-                count_max <= 2**16 - 1;
+                SRAMdatatrunk <= SRAMdata; -- default case for 16 bits
+                count_max <= 2**8 - 1;
         end case;
     end process;
 

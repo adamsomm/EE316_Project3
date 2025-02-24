@@ -13,7 +13,7 @@ entity topLevel is
     ADCSDA  : inout std_logic;
     ADCSCL  : inout std_logic;
     PWMout  : out std_logic;
-    Clk_Gen : out std_logic;
+    Clk_Gen : out std_logic
   );
 end topLevel;
 
@@ -23,10 +23,10 @@ architecture Behavioral of topLevel is
     port (
       clk     : in std_logic;
       reset   : out std_logic;
-      btn     : in std_logic_vector(2 downto 0);
+      ibtn     : in std_logic_vector(2 downto 0);
       MODE    : out std_logic_vector(2 downto 0);
-      LED     : out std_logic_vector(3 downto 0);
-      Clk_Gen : out std_logic
+      LEDc     : out std_logic_vector(3 downto 0);
+      Clk_Geno : out std_logic
     );
   end component;
   component ADC_I2C_user_logic is
@@ -44,7 +44,7 @@ architecture Behavioral of topLevel is
       clk          : in std_logic;
       rst          : in std_logic;
       dynamic_bits : in integer;
-      SRAMdata     : in std_logic_vector(15 downto 0);
+      SRAMdata     : in std_logic_vector(7 downto 0);
       PWMout       : out std_logic
     );
   end component;
@@ -92,6 +92,7 @@ architecture Behavioral of topLevel is
   -- Signal declarations
   signal system_reset : std_logic := '0';
   signal ADC_data     : std_logic_vector(7 downto 0);
+  signal ADC_data_clk : std_logic_vector(7 downto 0);
   signal MODE         : std_logic_vector(2 downto 0);
   signal Clk_gen_en   : std_logic;
   signal btn_reset    : std_logic;
@@ -103,11 +104,11 @@ begin
   port map
   (
     clk     => iCLK,
-    reset   => btn_reset,
-    btn     => btn,
+    reset   => system_reset,
+    ibtn     => btn,
     MODE    => MODE,
-    LED     => LED,
-    Clk_Gen => Clk_gen_en
+    LEDc     => LED,
+    Clk_Geno => Clk_gen_en
   );
 
   InstADCI2C : ADC_I2C_user_logic
@@ -193,12 +194,12 @@ begin
 
 
   -- Process declarations
-  process (clk)
+  process (iCLK)
   begin
     if Clk_gen_en = '1' then
       ADC_data_clk <= ADC_data;
     else
-      ADC_data_clk <= '0';
+      ADC_data_clk <= (others => '0');
     end if;
   end process;
 end Behavioral;
