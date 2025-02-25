@@ -18,24 +18,26 @@ end Mode_ManagerP3;
 architecture Behavioral of Mode_ManagerP3 is
     type state_type is (Resets, LDR, TEMP, POT, PWM);
     signal state   : state_type;
+    signal clockgen_buff : std_logic;
     -- Declare internal signals here
 begin
+    Clk_Geno <= clockgen_buff;
     process(clk, ibtn)
     begin
         if ibtn(0) = '1' then
             state <= Resets;
         elsif rising_edge(clk) then
             if ibtn(2) = '1' then
-                Clk_Geno <= '1';
+                clockgen_buff <= '1';
                 LEDc(1) <= '1';
             else
-                Clk_Geno <= '0';
+                clockgen_buff <= '0';
                 LEDc(1) <= '0';
             end if;
             case state is
                 when Resets =>
                     reset <= '1';
-                    LEDc(0) <= '0';
+                    LEDc <= (others => '0');
                     if ibtn(0) = '0' then
                         reset <= '0';
                         LEDc <= (others => '0');
@@ -67,9 +69,9 @@ begin
         end if;
 end process;
     with state select
-  MODE <= "000" when LDR,
-            "001" when TEMP,
+  MODE <= clockgen_buff & "00" when LDR,
+            clockgen_buff & "01" when TEMP,
             "010" when PWM,
-            "011" when POT, 
+            clockgen_buff & "11" when POT, 
             "000" when others;  -- Default value for unexpected states
 end Behavioral;

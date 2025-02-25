@@ -12,7 +12,7 @@ entity DigitalCLKcreator is
   port (
     clk           : in std_logic;
     reset         : in std_logic;
-    digital_in    : in std_logic_vector(7 downto 0) := "11111111";
+    digital_in    : in std_logic_vector(7 downto 0) := "00000000";
     output_signal : out std_logic := '0'
   );
 end DigitalCLKcreator;

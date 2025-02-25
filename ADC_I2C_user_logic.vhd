@@ -18,8 +18,8 @@ architecture Behavioral of ADC_I2C_user_logic is
 
   component i2c_master is
     generic (
-      input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
-      bus_clk   : integer := 50_000); --speed the i2c bus (scl) will run at in Hz
+      input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
+      bus_clk   : integer := 100_000); --speed the i2c bus (scl) will run at in Hz
     -- ADC runs at 400,000, lcd at 100k max 
     port (
       clk       : in std_logic; --system clock
@@ -57,8 +57,8 @@ begin
 
   inst_i2cMaster : i2c_master
   generic map(
-    input_clk => 50_000_000, --input clock speed from user logic in Hz
-    bus_clk   => 50_000) --speed the i2c bus (scl) will run at in Hz
+    input_clk => 125_000_000, --input clock speed from user logic in Hz
+    bus_clk   => 100_000) --speed the i2c bus (scl) will run at in Hz
   port map
   (
     clk       => clk, --system clock
@@ -79,10 +79,10 @@ begin
 --  variable ControlByte : std_logic_vector(1 downto 0) := X"02";
   begin
     case mode is
-      when "000"  => ControlByte  <=  X"00"; -- LDR mode 
-      when "001"  => ControlByte  <= X"01"; -- TEMP mode 
-      when "010"  => ControlByte  <= X"03"; -- POT mode
-      when "011"  => ControlByte  <= X"02"; -- PWM mode
+      when "000" | "100"  => ControlByte  <=  X"00"; -- LDR mode 
+      when "001" | "101"   => ControlByte  <= X"01"; -- TEMP mode 
+      when "010" | "110"   => ControlByte  <= X"03"; -- POT mode
+      when "011" | "111"   => ControlByte  <= X"02"; -- PWM mode
       when others => ControlByte <= X"02";
     end case;
   end process;

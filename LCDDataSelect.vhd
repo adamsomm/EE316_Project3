@@ -14,13 +14,16 @@ end LCDDataSelect;
 
 architecture Behavioral of LCDDataSelect is
 
-  type data2lcd is array (0 to 4, 0 to 10) of std_logic_vector(8 downto 0);
+  type data2lcd is array (0 to 7, 0 to 10) of std_logic_vector(8 downto 0);
   constant lcd_chars : data2lcd := (
-  ('1' & X"4C", '1' & X"44", '1' & X"52", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"50", '1' & X"4F", '1' & X"54", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),
-  ('1' & X"50", '1' & X"57", '1' & X"4D", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"),
-  ('0' & X"01", '1' & X"20", '1' & X"20", '1' & X"20",'1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20")
+  ('1' & X"4C", '1' & X"44", '1' & X"52", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),--ldr clock
+  ('1' & X"4C", '1' & X"44", '1' & X"52", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"), -- ldr
+  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),-- temp clock
+  ('1' & X"54", '1' & X"45", '1' & X"4D", '1' & X"50",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"), -- temp
+  ('1' & X"50", '1' & X"4F", '1' & X"54", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"43", '1' & X"4C", '1' & X"4F", '1' & X"43", '1' & X"4B"),-- pot clock
+  ('1' & X"50", '1' & X"4F", '1' & X"54", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"), -- pot 
+  ('1' & X"50", '1' & X"57", '1' & X"4D", '1' & X"20",'1' & X"20", '0' & X"C0", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20"),--pwm
+  ('0' & X"01", '1' & X"20", '1' & X"20", '1' & X"20",'1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20", '1' & X"20")--clear
   );
 
   signal LCD_EN      : std_logic := '0';
@@ -110,12 +113,14 @@ begin
 
     -- Mode changing logic 
     case mode is
-      when "000"  => mode_index  := 0; -- LDR mode 
-      when "001"  => mode_index  := 1; -- TEMP mode 
-      when "010"  => mode_index  := 2; -- POT mode
-      when "011"  => mode_index  := 3; -- PWM mode
-      when "100"  => mode_index  := 4; -- Clear mode
-      when others => mode_index := 4;
+      when "000"  => mode_index  := 1; -- LDR mode 
+      when "100"  => mode_index  := 0; -- LDR clock mode
+      when "001"  => mode_index  := 3; -- TEMP  mode 
+      when "101"  => mode_index  := 2; -- TEMP clock mode 
+      when "011"  => mode_index  := 5; -- POT mode
+      when "111"  => mode_index  := 4; -- POT clock mode
+      when "010"  => mode_index  := 6; -- PWM mode
+      when others => mode_index := 7;
     end case;
 
     case byteSel is

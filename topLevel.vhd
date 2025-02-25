@@ -30,6 +30,9 @@ architecture Behavioral of topLevel is
     );
   end component;
   component ADC_I2C_user_logic is
+  generic (
+      input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
+      bus_clk   : integer := 80_000); --speed the i2c bus (scl) will run at in Hz
     port (
       clk      : in std_logic;
       reset    : in std_logic;
@@ -62,6 +65,9 @@ architecture Behavioral of topLevel is
     );
   end component;
   component LCD_I2C_user_logic is
+  generic (
+      input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
+      bus_clk   : integer := 80_000);
     port (
       clk : in std_logic;
       reset : in std_logic;
@@ -92,26 +98,32 @@ architecture Behavioral of topLevel is
   -- Signal declarations
   signal system_reset : std_logic := '0';
   signal ADC_data     : std_logic_vector(7 downto 0);
-  signal ADC_data_clk : std_logic_vector(7 downto 0);
   signal MODE         : std_logic_vector(2 downto 0);
   signal Clk_gen_en   : std_logic;
   signal btn_reset    : std_logic;
+  signal clock_reset : std_logic;
   signal reset_d      : std_logic;
+  signal btndb        : std_logic_vector(2 downto 0);
 begin
   system_reset <= btn_reset or reset_d;
+  clock_reset <= system_reset or not MODE(2);
+  btndb(0) <= btn(0);
   -- Component instantiation
   Mode_ManagerP3_inst : Mode_ManagerP3
   port map
   (
     clk     => iCLK,
-    reset   => system_reset,
-    ibtn     => btn,
+    reset   => btn_reset,
+    ibtn     => btndb,
     MODE    => MODE,
     LEDc     => LED,
     Clk_Geno => Clk_gen_en
   );
 
   InstADCI2C : ADC_I2C_user_logic
+  generic map(
+      input_clk => 125_000_000, --input clock speed from user logic in Hz
+      bus_clk   => 80_000) --speed the i2c bus (scl) will run at in Hz
   port map
   (
     clk      => iCLK,
@@ -139,12 +151,15 @@ begin
   port map
   (
     clk           => iCLK,
-    reset         => system_reset,
-    digital_in    => ADC_data_clk,
+    reset         => clock_reset,
+    digital_in    => ADC_data,
     output_signal => Clk_Gen
   );
 
   LCD_I2C_user_logic_inst : LCD_I2C_user_logic
+  generic map(
+      input_clk => 125_000_000, --input clock speed from user logic in Hz
+      bus_clk   => 80_000)
   port map (
     clk => iCLK,
     reset => system_reset,
@@ -153,37 +168,37 @@ begin
     sda => LCDsda
   );
 
-  btn_debounce_toggle_inst0 : btn_debounce_toggle
-  generic map (
-    CNTR_MAX => CNTR_MAX
-  )
-  port map (
-    BTN_I => btn(0),
-    CLK => iCLK,
-    BTN_O => btn(0),
-    TOGGLE_O => open,
-    PULSE_O => open
-  );
+--  btn_debounce_toggle_inst0 : btn_debounce_toggle
+--  generic map (
+--    CNTR_MAX => X"FFFF"
+--  )
+--  port map (
+--    BTN_I => btn(0),
+--    CLK => iCLK,
+--    BTN_O => btndb(0),
+--    TOGGLE_O => open,
+--    PULSE_O => open
+--  );
   btn_debounce_toggle_inst1 : btn_debounce_toggle
   generic map (
-    CNTR_MAX => CNTR_MAX
+    CNTR_MAX => X"FFFF"
   )
   port map (
     BTN_I => btn(1),
     CLK => iCLK,
     BTN_O => open,
     TOGGLE_O => open,
-    PULSE_O => btn(1)
+    PULSE_O => btndb(1)
   );
   btn_debounce_toggle_inst2 : btn_debounce_toggle
   generic map (
-    CNTR_MAX => CNTR_MAX
+    CNTR_MAX => X"FFFF"
   )
   port map (
     BTN_I => btn(2),
     CLK => iCLK,
     BTN_O => open,
-    TOGGLE_O => btn(2),
+    TOGGLE_O => btndb(2),
     PULSE_O => open
   );
   Reset_Delay_inst : Reset_Delay
@@ -194,12 +209,4 @@ begin
 
 
   -- Process declarations
-  process (iCLK)
-  begin
-    if Clk_gen_en = '1' then
-      ADC_data_clk <= ADC_data;
-    else
-      ADC_data_clk <= (others => '0');
-    end if;
-  end process;
-end Behavioral;
+ end Behavioral;
