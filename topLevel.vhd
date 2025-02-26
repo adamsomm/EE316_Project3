@@ -13,7 +13,8 @@ entity topLevel is
     ADCSDA  : inout std_logic;
     ADCSCL  : inout std_logic;
     PWMout  : out std_logic;
-    Clk_Gen : out std_logic
+    Clk_Gen : out std_logic;
+    data_out: out std_logic_vector(7 downto 0)
   );
 end topLevel;
 
@@ -32,7 +33,7 @@ architecture Behavioral of topLevel is
   component ADC_I2C_user_logic is
   generic (
       input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
-      bus_clk   : integer := 80_000); --speed the i2c bus (scl) will run at in Hz
+      bus_clk   : integer := 100_000); --speed the i2c bus (scl) will run at in Hz
     port (
       clk      : in std_logic;
       reset    : in std_logic;
@@ -67,7 +68,7 @@ architecture Behavioral of topLevel is
   component LCD_I2C_user_logic is
   generic (
       input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
-      bus_clk   : integer := 80_000);
+      bus_clk   : integer := 100_000);
     port (
       clk : in std_logic;
       reset : in std_logic;
@@ -108,6 +109,7 @@ begin
   system_reset <= btn_reset or reset_d;
   clock_reset <= system_reset or not MODE(2);
   btndb(0) <= btn(0);
+  data_out <= ADC_data;
   -- Component instantiation
   Mode_ManagerP3_inst : Mode_ManagerP3
   port map
@@ -123,7 +125,7 @@ begin
   InstADCI2C : ADC_I2C_user_logic
   generic map(
       input_clk => 125_000_000, --input clock speed from user logic in Hz
-      bus_clk   => 80_000) --speed the i2c bus (scl) will run at in Hz
+      bus_clk   => 100_000) --speed the i2c bus (scl) will run at in Hz
   port map
   (
     clk      => iCLK,
@@ -159,7 +161,7 @@ begin
   LCD_I2C_user_logic_inst : LCD_I2C_user_logic
   generic map(
       input_clk => 125_000_000, --input clock speed from user logic in Hz
-      bus_clk   => 80_000)
+      bus_clk   => 100_000)
   port map (
     clk => iCLK,
     reset => system_reset,
