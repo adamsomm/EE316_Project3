@@ -32,7 +32,7 @@ architecture Behavioral of topLevel is
   end component;
   component ADC_I2C_user_logic is
   generic (
-      input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
+      input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
       bus_clk   : integer := 100_000); --speed the i2c bus (scl) will run at in Hz
     port (
       clk      : in std_logic;
@@ -67,7 +67,7 @@ architecture Behavioral of topLevel is
   end component;
   component LCD_I2C_user_logic is
   generic (
-      input_clk : integer := 125_000_000; --input clock speed from user logic in Hz
+      input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
       bus_clk   : integer := 100_000);
     port (
       clk : in std_logic;
@@ -106,9 +106,9 @@ architecture Behavioral of topLevel is
   signal reset_d      : std_logic;
   signal btndb        : std_logic_vector(2 downto 0);
 begin
-  system_reset <= btn_reset or reset_d;
+  system_reset <= btn(0) or reset_d;
   clock_reset <= system_reset or not MODE(2);
-  btndb(0) <= btn(0);
+--  btndb(0) <= btn(0);
   data_out <= ADC_data;
   -- Component instantiation
   Mode_ManagerP3_inst : Mode_ManagerP3
@@ -124,7 +124,7 @@ begin
 
   InstADCI2C : ADC_I2C_user_logic
   generic map(
-      input_clk => 125_000_000, --input clock speed from user logic in Hz
+      input_clk => 50_000_000, --input clock speed from user logic in Hz
       bus_clk   => 100_000) --speed the i2c bus (scl) will run at in Hz
   port map
   (
@@ -160,7 +160,7 @@ begin
 
   LCD_I2C_user_logic_inst : LCD_I2C_user_logic
   generic map(
-      input_clk => 125_000_000, --input clock speed from user logic in Hz
+      input_clk => 50_000_000, --input clock speed from user logic in Hz
       bus_clk   => 100_000)
   port map (
     clk => iCLK,
@@ -170,17 +170,17 @@ begin
     sda => LCDsda
   );
 
---  btn_debounce_toggle_inst0 : btn_debounce_toggle
---  generic map (
---    CNTR_MAX => X"FFFF"
---  )
---  port map (
---    BTN_I => btn(0),
---    CLK => iCLK,
---    BTN_O => btndb(0),
---    TOGGLE_O => open,
---    PULSE_O => open
---  );
+  btn_debounce_toggle_inst0 : btn_debounce_toggle
+  generic map (
+    CNTR_MAX => X"FFFF"
+  )
+  port map (
+    BTN_I => btn(0),
+    CLK => iCLK,
+    BTN_O =>  btndb(0),
+    TOGGLE_O => open,
+    PULSE_O => open
+  );
   btn_debounce_toggle_inst1 : btn_debounce_toggle
   generic map (
     CNTR_MAX => X"FFFF"

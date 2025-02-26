@@ -5,10 +5,13 @@ use ieee.std_logic_unsigned.all;
 use IEEE.numeric_std.all;
 
 entity LCD_I2C_user_logic is
+generic (
+      input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
+      bus_clk   : integer := 100_000); --speed the i2c bus (scl) will run at in Hz
   port (
     clk   : in std_logic;
-    reset : in std_logic;
-    MODE  : in std_logic_vector(2 downto 0);
+    reset : in std_logic := '1';
+    MODE  : in std_logic_vector(2 downto 0) := "000";
     scl   : inout std_logic;
     sda   : inout std_logic
 
@@ -50,13 +53,13 @@ architecture user_logic of LCD_I2C_user_logic is
 
   signal LCD_Data : std_logic_vector(7 downto 0) := (others => '0');
 
-  signal cont        : unsigned(27 downto 0)        := X"01FFFFF";
+  signal cont        : unsigned(27 downto 0)        := X"0FC4B40";
   signal slave_addr  : std_logic_vector(6 downto 0) := "0100111"; -- 0x27 in 7-bit
   signal i2c_addr    : std_logic_vector(6 downto 0);
   signal i2c_rw      : std_logic                    := '0';
   signal i2c_ena : std_logic := '0';
   signal i2c_data_wr : std_logic_vector(7 downto 0) := (others => '0');
-  signal nextByte    : integer range 0 to 5;
+  signal nextByte    : integer range 0 to 5 := 0;
   type state_type is (start, write);
   signal state   : state_type;
   signal rst     : std_logic := '0';
@@ -102,8 +105,8 @@ begin
   begin
     if reset = '1' then
       rst         <= '1';
-      cont        <= X"01FFFFF";
-      i2c_addr    <= (others => '0');
+      cont        <= X"0FC4B40";
+      i2c_addr    <= slave_addr;
       i2c_data_wr <= (others => '0');
       oldBusy     <= '0';
       i2c_ena     <= '0';
@@ -132,6 +135,7 @@ begin
             i2c_ena     <= '1';
             i2c_addr    <= slave_addr;
             i2c_data_wr <= LCD_Data;
+				nextByte <= 0;
             state       <= write;
           end if;
         when write =>

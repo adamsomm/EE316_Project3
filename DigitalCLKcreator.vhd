@@ -29,7 +29,7 @@ begin
     elsif rising_edge(clk) then
       -- Add your clock generation logic here
       Cnt_Threshold <= Cnt_Max - ((to_integer(unsigned(digital_in))) * ((Cnt_Max - Cnt_Min) / 255));
-      if (Cnt = (Cnt_Threshold/2)) then
+      if (Cnt >= (Cnt_Threshold/2)) then
         Cnt <= 0;
         output_buffer <= not output_buffer;
       else

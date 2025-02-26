@@ -4,6 +4,9 @@ use ieee.std_logic_unsigned.all;
 use IEEE.numeric_std.all;
 
 entity ADC_I2C_user_logic is
+generic (
+      input_clk : integer := 50_000_000; --input clock speed from user logic in Hz
+      bus_clk   : integer := 100_000); --speed the i2c bus (scl) will run at in Hz
   port (
     clk      : in std_logic;
     reset    : in std_logic;
@@ -81,8 +84,8 @@ begin
     case mode is
       when "000" | "100"  => ControlByte  <=  X"00"; -- LDR mode 
       when "001" | "101"   => ControlByte  <= X"01"; -- TEMP mode 
-      when "010" | "110"   => ControlByte  <= X"03"; -- POT mode
-      when "011" | "111"   => ControlByte  <= X"02"; -- PWM mode
+      when "010" | "110"   => ControlByte  <= X"02"; -- PWM mode
+      when "011" | "111"   => ControlByte  <= X"03"; -- POT mode
       when others => ControlByte <= X"02";
     end case;
   end process;

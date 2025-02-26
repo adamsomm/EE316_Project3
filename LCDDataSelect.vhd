@@ -6,7 +6,7 @@ entity LCDDataSelect is
   port (
     clk      : in std_logic;
     reset    : in std_logic;
-    nextByte : in integer;
+    nextByte : in integer := 0;
     mode     : in std_logic_vector(2 downto 0) := "100";
     data_out : out std_logic_vector(7 downto 0) := (others => '0')
   );
@@ -36,8 +36,8 @@ architecture Behavioral of LCDDataSelect is
   signal counter     : integer   := 0;
   --  signal firstZero   : std_logic                    := '0';
   signal data     : std_logic_vector(7 downto 0) := (others => '0');
-  signal LCD_DATA : std_logic_vector(3 downto 0) := (others => '0');
-  signal byteSel  : integer range 1 to 20        := 1;
+  signal LCD_DATA : std_logic_vector(3 downto 0) := (X"3");
+  signal byteSel  : integer range 1 to 23        := 1;
 
 begin
 
@@ -57,7 +57,7 @@ begin
           if byteSel < 20 then
             byteSel <= byteSel + 1;
           else
-            byteSel <= 9;
+            byteSel <= 9;--9
           end if;
         end if;
       end if;
@@ -125,13 +125,13 @@ begin
 
     case byteSel is
         -- Initialization commands
-      when 1  =>
+      when 1 to 3   =>
         data <= X"30";
         RS   <= '0'; -- 4 bit mode select
-      when 2 =>
+      when 4  =>
         data <= X"20";
         RS   <= '0'; -- initialize 4-bit mode
-      when 3 to 5 =>
+      when  5 =>
         data <= X"28";
         RS   <= '0';     
       when 6 =>

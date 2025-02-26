@@ -37,7 +37,7 @@ begin
             case state is
                 when Resets =>
                     reset <= '1';
-                    LEDc <= (others => '0');
+                    LEDc <= "0001";
                     if ibtn(0) = '0' then
                         reset <= '0';
                         LEDc <= (others => '0');
